@@ -1,6 +1,6 @@
 import { User } from "@prisma/client"
 import { PrismaClient } from "@prisma/client"
-import hashPassword from "./password.js"
+import { hashPassword } from "./password.js"
 
 const prisma = new PrismaClient()
 const users = [
