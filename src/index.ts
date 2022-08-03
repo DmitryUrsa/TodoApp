@@ -1,14 +1,22 @@
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import express from "express"
+import path from "path"
+import { fileURLToPath } from "url"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-async function main() {}
+const app = express()
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+app.use(express.static(path.join(__dirname, "client/build")))
+
+app.get("/api/login", (req, res) => {
+  res.send("Hello World!")
+})
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname + "/client/build/index.html"))
+})
+
+const port = process.env.PORT || 5000
+app.listen(port)
+
+console.log(`Password generator listening on ${port}`)
