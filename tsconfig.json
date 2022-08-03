@@ -7,7 +7,10 @@
     "esModuleInterop": true,
     "strict": true,
     "outDir": "dist",
-    "rootDir": "src",
     "allowJs": true
-  }
+  },
+  "watchOptions": {
+    "excludeDirectories": ["dist", "client/**/**", "prisma"]
+  },
+  "exclude": ["dist", "client/**/**", "prisma"]
 }
