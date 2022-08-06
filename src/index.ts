@@ -6,6 +6,7 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import { logIn, verifyToken } from "./auth/user.js"
 import cookieParser from "cookie-parser"
+import { getUsers } from "./users.js"
 
 const app = express()
 
@@ -56,6 +57,21 @@ app.get("/logout", async (req, res, next) => {
     status: "success",
     message: "Вы вышли",
   })
+})
+
+app.get("/usersList", async (req, res, next) => {
+  const token = req.cookies.token
+  const verifyResult = verifyToken(token)
+
+  if (verifyResult.status === "error")
+    res.status(401).json({
+      status: "error",
+    })
+
+  if (verifyResult.status === "success") {
+    const usersList = await getUsers()
+    res.json(usersList)
+  }
 })
 
 const port = process.env.PORT || 5000
