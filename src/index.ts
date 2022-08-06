@@ -1,22 +1,27 @@
 import express from "express"
-import path from "path"
-import { fileURLToPath } from "url"
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import cors from "cors"
+import bodyParser from "body-parser"
+import { logIn } from "./auth/user.js"
 
 const app = express()
 
-app.use(express.static(path.join(__dirname, "../../client/build")))
+app.use(cors())
 
-app.get("/api/login", (req, res) => {
-  res.send("Hello World!")
-})
+app.post("/login", bodyParser.json(), async (req, res) => {
+  console.log("POST")
+  const ParsedBody = req.body as {
+    login: string
+    password: string
+  }
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../client/build/index.html"))
+  const LoginResult = await logIn({
+    login: ParsedBody.login,
+    password: ParsedBody.password,
+  })
+  res.send(LoginResult)
 })
 
 const port = process.env.PORT || 5000
-app.listen(port)
-
-console.log(`Password generator listening on ${port}`)
+app.listen(port, () => {
+  console.log(`API listening on ${port}`)
+})

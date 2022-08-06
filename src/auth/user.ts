@@ -45,3 +45,5 @@ async function logIn(user: Login) {
     message: token,
   }
 }
+
+export { logIn }
