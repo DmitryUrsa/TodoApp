@@ -5,14 +5,16 @@ import express from "express"
 import cors from "cors"
 import bodyParser from "body-parser"
 import { logIn, verifyToken } from "./auth/user.js"
-import jwt from "jsonwebtoken"
+import cookieParser from "cookie-parser"
 
 const app = express()
 
 app.use(cors())
+app.use(cookieParser())
 
 app.post("/login", bodyParser.json(), async (req, res) => {
   console.log("POST")
+
   const ParsedBody = req.body as {
     login: string
     password: string
@@ -22,11 +24,13 @@ app.post("/login", bodyParser.json(), async (req, res) => {
     login: ParsedBody.login,
     password: ParsedBody.password,
   })
+  if (LoginResult.status == "success")
+    res.set("Set-Cookie", `token=${LoginResult.message}`)
   res.json(LoginResult)
 })
 
 app.get("/authorization", async (req, res, next) => {
-  const token = req.get("x-access-token")
+  const token = req.cookies.token
 
   const verifyResult = verifyToken(token)
   console.log(verifyResult)
@@ -44,6 +48,14 @@ app.get("/authorization", async (req, res, next) => {
       message: "Авторизиривон успешно",
       user: verifyResult.user,
     })
+})
+
+app.get("/logout", async (req, res, next) => {
+  res.set("Set-Cookie", `token=`)
+  res.json({
+    status: "success",
+    message: "Вы вышли",
+  })
 })
 
 const port = process.env.PORT || 5000

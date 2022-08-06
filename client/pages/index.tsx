@@ -1,11 +1,18 @@
 import type { NextPage } from "next"
-import Head from "next/head"
-import Image from "next/image"
+import Header from "../components/header"
 import Login from "../components/login"
-import styles from "../styles/Home.module.css"
+import { useUser } from "../hooks/useUser"
 
 const Home: NextPage = () => {
-  return <Login />
+  const { user, mutateUser } = useUser()
+  console.log(`user changed`, user)
+  if (!user.isLoggedIn) return <Login mutateUser={mutateUser} />
+
+  return (
+    <div>
+      <Header mutateUser={mutateUser} />
+    </div>
+  )
 }
 
 export default Home
