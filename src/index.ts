@@ -1,7 +1,11 @@
+import dotenv from "dotenv"
+dotenv.config()
+
 import express from "express"
 import cors from "cors"
 import bodyParser from "body-parser"
-import { logIn } from "./auth/user.js"
+import { logIn, verifyToken } from "./auth/user.js"
+import jwt from "jsonwebtoken"
 
 const app = express()
 
@@ -18,7 +22,28 @@ app.post("/login", bodyParser.json(), async (req, res) => {
     login: ParsedBody.login,
     password: ParsedBody.password,
   })
-  res.send(LoginResult)
+  res.json(LoginResult)
+})
+
+app.get("/authorization", async (req, res, next) => {
+  const token = req.get("x-access-token")
+
+  const verifyResult = verifyToken(token)
+  console.log(verifyResult)
+
+  if (verifyResult.status === "error")
+    res.status(401).json({
+      status: verifyResult.status,
+      message: verifyResult.message,
+      user: null,
+    })
+
+  if (verifyResult.status === "success")
+    res.json({
+      status: verifyResult.status,
+      message: "Авторизиривон успешно",
+      user: verifyResult.user,
+    })
 })
 
 const port = process.env.PORT || 5000
