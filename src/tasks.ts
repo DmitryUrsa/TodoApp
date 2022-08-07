@@ -4,12 +4,14 @@ import { DateTime } from "luxon"
 const prisma = new PrismaClient()
 
 type Post = {
+  id?: string | undefined
   header: string | undefined
   description: string | undefined
   priority: string | undefined
   assignedUser: string | undefined
   endDate: string | undefined
   author: string | undefined
+  status?: string | undefined
 }
 
 export async function createTask({
@@ -70,4 +72,53 @@ export async function getTasks() {
     ...task,
     assigned_user: usersList.find((user) => user.id == task.assigned_user),
   }))
+}
+
+export async function updateTask({
+  id,
+  header,
+  description,
+  priority,
+  assignedUser,
+  endDate,
+  author,
+  status,
+}: Post) {
+  if (
+    !(
+      id &&
+      header &&
+      description &&
+      priority &&
+      priority != "0" &&
+      assignedUser &&
+      assignedUser != "0" &&
+      endDate &&
+      author &&
+      status
+    )
+  )
+    return {
+      status: "error",
+      message: "One of the fields are empty",
+    }
+
+  const usersList = await prisma.task.update({
+    where: {
+      id: parseInt(id),
+    },
+    data: {
+      title: header,
+      description: description,
+      status: status,
+
+      priority: parseInt(priority),
+      assigned_user: parseInt(assignedUser),
+      author: parseInt(author),
+
+      end_date: DateTime.fromJSDate(new Date(endDate)).toISO(),
+      last_updated: DateTime.fromJSDate(new Date(endDate)).toISO(),
+    },
+  })
+  return usersList
 }

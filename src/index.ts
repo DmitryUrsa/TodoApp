@@ -7,7 +7,7 @@ import bodyParser from "body-parser"
 import { logIn, verifyToken } from "./auth/user.js"
 import cookieParser from "cookie-parser"
 import { getUsers } from "./users.js"
-import { createTask, getTasks } from "./tasks.js"
+import { createTask, getTasks, updateTask } from "./tasks.js"
 
 const app = express()
 
@@ -130,6 +130,47 @@ app.get("/gettasks", bodyParser.json(), async (req, res) => {
     })
 
   res.json(await getTasks())
+})
+
+app.put("/updatetask/:id", bodyParser.json(), async (req, res) => {
+  const token = req.cookies.token
+  const verifyResult = verifyToken(token)
+
+  if (verifyResult.status === "error")
+    res.status(401).json({
+      status: "Unauthorized",
+    })
+
+  if (
+    verifyResult.status === "success" &&
+    verifyResult.user?.role === "admin" &&
+    req.body
+  ) {
+    const TypedBody = req.body as {
+      id: string
+      header: string
+      description: string
+      priority: string
+      assignedUser: string
+      endDate: string
+      author: string
+      status: string
+    }
+    const request = {
+      id: req.params.id,
+      header: TypedBody.header,
+      description: TypedBody.description,
+      priority: TypedBody.priority,
+      assignedUser: TypedBody.assignedUser,
+      endDate: TypedBody.endDate,
+      author: TypedBody.author,
+      status: TypedBody.status,
+    }
+    console.log(`request`, request)
+
+    const createTaskResult = await updateTask(request)
+    res.json(createTaskResult)
+  }
 })
 
 const port = process.env.PORT || 5000
