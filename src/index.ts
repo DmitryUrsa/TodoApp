@@ -43,12 +43,14 @@ app.get("/authorization", async (req, res, next) => {
   const verifyResult = verifyToken(token)
   console.log(verifyResult)
 
-  if (verifyResult.status === "error")
+  if (verifyResult.status === "error") {
     res.status(401).json({
       status: verifyResult.status,
       message: verifyResult.message,
       user: null,
     })
+    return
+  }
 
   if (verifyResult.status === "success")
     res.json({
@@ -70,10 +72,12 @@ app.get("/usersList", async (req, res) => {
   const token = req.cookies.token
   const verifyResult = verifyToken(token)
 
-  if (verifyResult.status === "error")
+  if (verifyResult.status === "error") {
     res.status(401).json({
       status: "error",
     })
+    return
+  }
 
   if (verifyResult.status === "success") {
     const usersList = await getUsers()
@@ -82,36 +86,45 @@ app.get("/usersList", async (req, res) => {
 })
 
 app.post("/createtask", bodyParser.json(), async (req, res) => {
-  const token = req.cookies.token
-  const verifyResult = verifyToken(token)
+  try {
+    const token = req.cookies.token
+    const verifyResult = verifyToken(token)
 
-  if (verifyResult.status === "error" || verifyResult.user?.role !== "admin")
-    res.status(401).json({
-      status: "Unauthorized",
-    })
-
-  if (req.body) {
-    const TypedBody = req.body as {
-      header: string
-      description: string
-      priority: string
-      assignedUser: string
-      endDate: string
-      author: string
+    if (
+      verifyResult.status === "error" ||
+      verifyResult.user?.role !== "admin"
+    ) {
+      res.status(401).json({
+        status: "Unauthorized",
+      })
+      return
     }
-    const data = {
-      header: TypedBody.header,
-      description: TypedBody.description,
-      priority: TypedBody.priority,
-      assignedUser: TypedBody.assignedUser,
-      endDate: TypedBody.endDate,
-      author: TypedBody.author,
+
+    if (req.body) {
+      const TypedBody = req.body as {
+        header: string
+        description: string
+        priority: string
+        assignedUser: string
+        endDate: string
+        author: string
+      }
+      const data = {
+        header: TypedBody.header,
+        description: TypedBody.description,
+        priority: TypedBody.priority,
+        assignedUser: TypedBody.assignedUser,
+        endDate: TypedBody.endDate,
+        author: TypedBody.author,
+      }
+      console.log(data)
+
+      const createTaskResult = await createTask(data)
+
+      res.json(createTaskResult)
     }
-    console.log(data)
-
-    const createTaskResult = await createTask(data)
-
-    res.json(createTaskResult)
+  } catch (error) {
+    console.log(error)
   }
 })
 
@@ -119,70 +132,88 @@ app.get("/gettasks", bodyParser.json(), async (req, res) => {
   const token = req.cookies.token
   const verifyResult = verifyToken(token)
 
-  if (verifyResult.status === "error")
-    res.status(401).json({
-      status: "Unauthorized",
-    })
-
+  if (verifyResult.status === "error") {
+    {
+      res.status(401).json({
+        status: "Unauthorized",
+      })
+      return
+    }
+  }
   res.json(await getTasks())
 })
 
 app.put("/updatetask/:id", bodyParser.json(), async (req, res) => {
-  const token = req.cookies.token
-  const verifyResult = verifyToken(token)
+  try {
+    const token = req.cookies.token
+    const verifyResult = verifyToken(token)
 
-  if (verifyResult.status === "error")
-    res.status(401).json({
-      status: "Unauthorized",
-    })
+    if (verifyResult.status === "error") {
+      res.status(401).json({
+        status: "Unauthorized",
+      })
+      return
+    }
 
-  if (req.body) {
-    const TypedBody = req.body as {
-      id: string
-      header: string
-      description: string
-      priority: string
-      assignedUser: string
-      endDate: string
-      author: string
-      status: string
+    if (req.body) {
+      const TypedBody = req.body as {
+        id: string
+        header: string
+        description: string
+        priority: string
+        assignedUser: string
+        endDate: string
+        author: string
+        status: string
+      }
+      const request = {
+        id: req.params.id,
+        header: TypedBody.header,
+        description: TypedBody.description,
+        priority: TypedBody.priority,
+        assignedUser: TypedBody.assignedUser,
+        endDate: TypedBody.endDate,
+        author: TypedBody.author,
+        status: TypedBody.status,
+      }
+      console.log(`request`, request)
+      if (verifyResult.user?.role === "admin") {
+        const createTaskResult = await updateTask(request)
+        res.json(createTaskResult)
+      } else {
+        const createTaskResult = await updateTaskStatus(
+          request.id,
+          request.status
+        )
+        res.json(createTaskResult)
+      }
     }
-    const request = {
-      id: req.params.id,
-      header: TypedBody.header,
-      description: TypedBody.description,
-      priority: TypedBody.priority,
-      assignedUser: TypedBody.assignedUser,
-      endDate: TypedBody.endDate,
-      author: TypedBody.author,
-      status: TypedBody.status,
-    }
-    console.log(`request`, request)
-    if (verifyResult.user?.role === "admin") {
-      const createTaskResult = await updateTask(request)
-      res.json(createTaskResult)
-    } else {
-      const createTaskResult = await updateTaskStatus(
-        request.id,
-        request.status
-      )
-      res.json(createTaskResult)
-    }
+  } catch (error) {
+    console.log(error)
   }
 })
 
 app.delete("/updatetask/:id", bodyParser.json(), async (req, res) => {
-  const token = req.cookies.token
-  const verifyResult = verifyToken(token)
+  try {
+    const token = req.cookies.token
+    const verifyResult = verifyToken(token)
 
-  if (verifyResult.status === "error" || verifyResult.user?.role !== "admin")
-    res.status(401).json({
-      status: "Unauthorized",
-    })
+    if (
+      verifyResult.status === "error" ||
+      verifyResult.user?.role !== "admin"
+    ) {
+      res.status(401).json({
+        status: "Unauthorized",
+      })
+      return
+    }
 
-  if (verifyResult.user?.role === "admin") {
-    const createTaskResult = await deleteTask(req.params.id)
-    res.json(createTaskResult)
+    if (verifyResult.user?.role === "admin") {
+      const createTaskResult = await deleteTask(req.params.id)
+      res.json(createTaskResult)
+    }
+  } catch (error) {
+    console.log(error)
   }
 })
 
