@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { comparePassword } from "../utilities/password.js"
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload } from "jsonwebtoken"
 import dotenv from "dotenv"
 dotenv.config()
 
@@ -33,7 +33,7 @@ async function logIn(user: Login) {
   if (!process.env.JWT_SECRET)
     return { status: "error", message: "Ошибка сервера" }
   const token = jwt.sign(
-    { login: foundUser.login, role: foundUser.role },
+    { id: foundUser.id, login: foundUser.login, role: foundUser.role },
     process.env.JWT_SECRET
   )
   console.log(`JWT Token generated!`, token)
@@ -51,7 +51,10 @@ function verifyToken(token: string | undefined) {
   }
 
   try {
-    const verification = jwt.verify(token, process.env.JWT_SECRET)
+    const verification = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    ) as JwtPayload & { login: string; role: string }
     if (verification)
       return { message: "", status: "success", user: verification }
     return { status: "error", message: "Неизвестная ошибка" }

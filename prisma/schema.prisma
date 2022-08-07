@@ -21,14 +21,14 @@ model User {
 }
 
 model Task {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   title         String
   description   String
-  start_date    String
-  end_date      String
-  last_updated  String
-  priority      String
   status        String
+  start_date    DateTime
+  end_date      DateTime
+  last_updated  DateTime
+  priority      Int
   author        Int
   assigned_user Int
 }

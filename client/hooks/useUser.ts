@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import Router from "next/router"
 
 type User = {
   isLoggedIn: boolean
+  id: number | null
   login: string | null
   role: string | null
 }
@@ -16,6 +16,7 @@ export async function authenticate() {
 export function useUser({ redirectTo = "", redirectIfFound = false } = {}) {
   const [user, mutateUser] = useState<User>({
     isLoggedIn: false,
+    id: null,
     login: null,
     role: null,
   })

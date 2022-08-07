@@ -37,16 +37,17 @@ function InputField({
     </div>
   )
 }
+
 type DBUser = {
-  first_name: "Dmitry"
-  second_name: "Ursa"
-  login: "DmitryUrsa"
-  id: 6
+  first_name: string
+  second_name: string
+  login: string
+  id: number
 }
 
 const Home: NextPage = () => {
   const { user, mutateUser } = useUser()
-  const [startDate, setStartDate] = useState(new Date())
+  const [endDate, setEndDate] = useState(new Date())
   const [usersList, setUsersList] = useState<DBUser[] | []>([])
   useEffect(() => {
     async function getUsers() {
@@ -59,15 +60,34 @@ const Home: NextPage = () => {
     getUsers()
   }, [])
 
-  function handleTaskCreate(event: React.SyntheticEvent) {
+  async function handleTaskCreate(event: React.SyntheticEvent) {
     event.preventDefault()
     const target = event.target as typeof event.target & {
       header: { value: string }
       description: { value: string }
       priority: { value: string }
       assignedUser: { value: string }
+      endDate: { value: string }
     }
-    console.log(target.header.value)
+    const responce = await fetch("/serverapi/createtask", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        header: target.header.value,
+        description: target.description.value,
+        priority: target.priority.value,
+        assignedUser: target.assignedUser.value,
+        endDate: endDate,
+        author: user.id,
+      }),
+    })
+    const content = (await responce.json()) as
+      | { status: string; message: string }
+      | undefined
+    console.log(content)
   }
 
   console.log(`user changed`, user)
@@ -90,8 +110,8 @@ const Home: NextPage = () => {
               <span className="label-text">Дата окончания</span>
             </label>
             <DatePicker
-              selected={startDate}
-              onChange={(date: Date) => setStartDate(date)}
+              selected={endDate}
+              onChange={(date: Date) => setEndDate(date)}
               showTimeSelect
               locale="ru"
               timeCaption="Время"
@@ -105,7 +125,7 @@ const Home: NextPage = () => {
               <span className="label-text">Приоритет</span>
             </label>
             <select name="priority" className="select w-full">
-              <option disabled selected>
+              <option disabled selected value={0}>
                 Выберите приоритет задачи
               </option>
               <option value={1}>Высокий</option>
@@ -119,7 +139,7 @@ const Home: NextPage = () => {
               <span className="label-text">Ответственный</span>
             </label>
             <select name="assignedUser" className="select w-full">
-              <option disabled selected>
+              <option disabled selected value={0}>
                 Выберите ответственного
               </option>
               {usersList.map((user) => (
