@@ -6,7 +6,7 @@ import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker"
 import { useState, useEffect, SetStateAction } from "react"
 import "react-datepicker/dist/react-datepicker.css"
 import ru from "date-fns/locale/ru"
-import { Button, Modal } from "react-daisyui"
+import { Alert, Button, Modal } from "react-daisyui"
 import { User } from "@prisma/client"
 registerLocale("ru", ru)
 
@@ -177,6 +177,19 @@ function TaskForm({
     currentTaskData?.description
   )
 
+  const [resultMessage, setResultMessage] = useState<
+    | undefined
+    | {
+        message: string
+        status: any
+      }
+  >(undefined)
+
+  function resetForm() {
+    setHeaderField("")
+    setDescriptionField("")
+  }
+
   useEffect(() => {
     async function getUsers() {
       const responce = await fetch("/serverapi/usersList")
@@ -199,6 +212,29 @@ function TaskForm({
     setDescriptionField(currentTaskDataFill?.description)
   }, [currentTaskDataFill])
 
+  async function deleteTask(event: React.SyntheticEvent) {
+    event.preventDefault()
+    const responce = await fetch(
+      `/serverapi/updatetask/${currentTaskData.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    const content = (await responce.json()) as
+      | { status: string; message: string }
+      | undefined
+    console.log(`content`, content)
+
+    if (content?.status == "success") {
+      flushTaskData()
+      updateTasks()
+    }
+  }
+
   async function handleTaskCreate(event: React.SyntheticEvent) {
     event.preventDefault()
     const target = event.target as typeof event.target & {
@@ -207,29 +243,41 @@ function TaskForm({
       priority: { value: string }
       assignedUser: { value: string }
       endDate: { value: string }
+      status: { value: string }
     }
+    const preparedBody = {
+      header: headerField,
+      description: descriptionField,
+      priority: target.priority.value,
+      assignedUser: target.assignedUser.value,
+      status: target.status.value,
+      endDate: endDate,
+      author: user.id,
+    }
+    console.log(preparedBody)
+
     const responce = await fetch("/serverapi/createtask", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        header: headerField,
-        description: descriptionField,
-        priority: target.priority.value,
-        assignedUser: target.assignedUser.value,
-        endDate: endDate,
-        author: user.id,
-      }),
+      body: JSON.stringify(preparedBody),
     })
     const content = (await responce.json()) as
       | { status: string; message: string }
       | undefined
     console.log(content)
-
-    updateTasks()
+    if (content?.status == "error") {
+      setResultMessage({ message: content.message, status: "error" })
+    }
+    if (content?.status == "success") {
+      flushTaskData()
+      updateTasks()
+      resetForm()
+    }
   }
+
   async function handleTaskUpdate(event: React.SyntheticEvent) {
     event.preventDefault()
     const target = event.target as typeof event.target & {
@@ -270,7 +318,7 @@ function TaskForm({
   }
   if (currentTaskData)
     return (
-      <div className="w-full p-6 bg-base-200 rounded drop-shadow-xl mx-auto">
+      <div className="w-full p-6 mx-auto">
         <form onSubmit={handleTaskUpdate}>
           <h1 className="text-xl text-neutral-content font-bold mb-2">
             {currentTaskData ? "Редактировать" : "Создать"} задачу
@@ -425,10 +473,12 @@ function TaskForm({
           </div>
 
           <div className="text-center">
-            <button type="submit" className="btn">
-              Отредактировать
-            </button>
+            <Button type="submit">Отредактировать</Button>
+            <Button onClick={deleteTask} className="btn-error ml-2">
+              Удалить задачу
+            </Button>
           </div>
+          <Alert status="warning">{resultMessage}</Alert>
         </form>
       </div>
     )
@@ -437,13 +487,13 @@ function TaskForm({
     return <div>Недостаточно прав на создание задачи</div>
 
   return (
-    <div className="w-full p-6 bg-base-200 rounded drop-shadow-xl mx-auto">
+    <div className="w-full p-6 mx-auto">
       <form onSubmit={handleTaskCreate}>
         <h1 className="text-xl text-neutral-content font-bold mb-2">
           Создать задачу
         </h1>
 
-        <div className="form-control w-full mb-6">
+        <div className="form-control w-full mb-4">
           <label className="label">
             <span className="label-text">Заголовок</span>
           </label>
@@ -456,7 +506,7 @@ function TaskForm({
           />
         </div>
 
-        <div className="form-control w-full mb-6">
+        <div className="form-control w-full mb-4">
           <label className="label">
             <span className="label-text">Описание</span>
           </label>
@@ -467,7 +517,8 @@ function TaskForm({
             onChange={(e) => setDescriptionField(e.target.value)}
           />
         </div>
-        <div className="form-control w-full mb-6">
+
+        <div className="form-control w-full mb-4">
           <label className="label">
             <span className="label-text">Дата окончания</span>
           </label>
@@ -482,22 +533,12 @@ function TaskForm({
           />
         </div>
 
-        <div className="form-control w-full mb-6">
+        <div className="form-control w-full mb-4">
           <label className="label">
-            <span className="label-text">Приоритет</span>
+            <span className="label-text">Статус</span>
           </label>
-          <select name="priority" className="select w-full">
-            <option
-              disabled
-              value={0}
-              selected={!currentTaskData ? true : undefined}
-            >
-              Статус
-            </option>
-            <option
-              value={1}
-              selected={currentTaskData?.status == "pending" ? true : undefined}
-            >
+          <select name="status" className="select w-full">
+            <option value={1} selected={!currentTaskData ? true : undefined}>
               Ожидает
             </option>
             <option
@@ -517,28 +558,24 @@ function TaskForm({
           </select>
         </div>
 
-        <div className="form-control w-full mb-6">
+        <div className="form-control w-full mb-4">
           <label className="label">
             <span className="label-text">Приоритет</span>
           </label>
           <select name="priority" className="select w-full">
-            <option disabled value={0} selected>
-              Выберите приоритет задачи
+            <option value={1} selected>
+              Высокий
             </option>
-            <option value={1}>Высокий</option>
             <option value={2}>Средний</option>
             <option value={3}>Низкий</option>
           </select>
         </div>
 
-        <div className="form-control w-full mb-6">
+        <div className="form-control w-full mb-4">
           <label className="label">
             <span className="label-text">Ответственный</span>
           </label>
           <select name="assignedUser" className="select w-full">
-            <option disabled selected value={0}>
-              Выберите ответственного
-            </option>
             {usersList.map((user) => (
               <option
                 value={user.id}
@@ -553,6 +590,11 @@ function TaskForm({
             Создать задачу
           </button>
         </div>
+        {resultMessage ? (
+          <Alert status="warning" className="mt-4">
+            {resultMessage.message}
+          </Alert>
+        ) : null}
       </form>
     </div>
   )
@@ -585,6 +627,7 @@ const Home: NextPage = () => {
   }
   function flushTaskData() {
     setEditTaskData(null)
+    toggleVisible()
   }
 
   useEffect(() => {
@@ -637,7 +680,7 @@ const Home: NextPage = () => {
           />
         </div>
       </div>
-      <Modal open={visible}>
+      <Modal open={visible} className="bg-base-300">
         <Button
           size="sm"
           shape="circle"
@@ -647,7 +690,7 @@ const Home: NextPage = () => {
           ✕
         </Button>
 
-        <Modal.Body className="mt-9">
+        <Modal.Body>
           <TaskForm
             updateTasks={updateTasks}
             user={user}

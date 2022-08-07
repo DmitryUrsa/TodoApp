@@ -36,10 +36,10 @@ export async function createTask({
   )
     return {
       status: "error",
-      message: "One of the fields are empty",
+      message: "Одно из полей пустое",
     }
 
-  const usersList = await prisma.task.create({
+  const data = await prisma.task.create({
     data: {
       title: header,
       description: description,
@@ -54,7 +54,17 @@ export async function createTask({
       last_updated: DateTime.fromJSDate(new Date(endDate)).toISO(),
     },
   })
-  return usersList
+
+  if (data)
+    return {
+      status: "success",
+      message: "Задача добавлена успешно",
+    }
+
+  return {
+    status: "error",
+    message: "Неизвестная ошибка",
+  }
 }
 
 export async function getTasks() {
@@ -121,4 +131,44 @@ export async function updateTask({
     },
   })
   return usersList
+}
+export async function updateTaskStatus(id: string, status: string) {
+  if (!(id && status))
+    return {
+      status: "error",
+      message: "One of the fields are empty",
+    }
+
+  const usersList = await prisma.task.update({
+    where: {
+      id: parseInt(id),
+    },
+    data: {
+      status: status,
+    },
+  })
+  return usersList
+}
+
+export async function deleteTask(id: string) {
+  if (!id)
+    return {
+      status: "error",
+      message: "No ID",
+    }
+
+  const data = await prisma.task.delete({
+    where: {
+      id: parseInt(id),
+    },
+  })
+  if (data)
+    return {
+      status: "success",
+      message: "Удаление успешно",
+    }
+  return {
+    status: "success",
+    message: "Ошибка во время удаления",
+  }
 }

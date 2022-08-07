@@ -7,7 +7,13 @@ import bodyParser from "body-parser"
 import { logIn, verifyToken } from "./auth/user.js"
 import cookieParser from "cookie-parser"
 import { getUsers } from "./users.js"
-import { createTask, getTasks, updateTask } from "./tasks.js"
+import {
+  createTask,
+  deleteTask,
+  getTasks,
+  updateTask,
+  updateTaskStatus,
+} from "./tasks.js"
 
 const app = express()
 
@@ -79,19 +85,12 @@ app.post("/createtask", bodyParser.json(), async (req, res) => {
   const token = req.cookies.token
   const verifyResult = verifyToken(token)
 
-  if (
-    verifyResult.status === "error" ||
-    !(verifyResult.status === "success" && verifyResult.user?.role === "admin")
-  )
+  if (verifyResult.status === "error" || verifyResult.user?.role !== "admin")
     res.status(401).json({
       status: "Unauthorized",
     })
 
-  if (
-    verifyResult.status === "success" &&
-    verifyResult.user?.role === "admin" &&
-    req.body
-  ) {
+  if (req.body) {
     const TypedBody = req.body as {
       header: string
       description: string
@@ -100,15 +99,18 @@ app.post("/createtask", bodyParser.json(), async (req, res) => {
       endDate: string
       author: string
     }
-
-    const createTaskResult = await createTask({
+    const data = {
       header: TypedBody.header,
       description: TypedBody.description,
       priority: TypedBody.priority,
       assignedUser: TypedBody.assignedUser,
       endDate: TypedBody.endDate,
       author: TypedBody.author,
-    })
+    }
+    console.log(data)
+
+    const createTaskResult = await createTask(data)
+
     res.json(createTaskResult)
   }
 })
@@ -156,8 +158,30 @@ app.put("/updatetask/:id", bodyParser.json(), async (req, res) => {
       status: TypedBody.status,
     }
     console.log(`request`, request)
+    if (verifyResult.user?.role === "admin") {
+      const createTaskResult = await updateTask(request)
+      res.json(createTaskResult)
+    } else {
+      const createTaskResult = await updateTaskStatus(
+        request.id,
+        request.status
+      )
+      res.json(createTaskResult)
+    }
+  }
+})
 
-    const createTaskResult = await updateTask(request)
+app.delete("/updatetask/:id", bodyParser.json(), async (req, res) => {
+  const token = req.cookies.token
+  const verifyResult = verifyToken(token)
+
+  if (verifyResult.status === "error" || verifyResult.user?.role !== "admin")
+    res.status(401).json({
+      status: "Unauthorized",
+    })
+
+  if (verifyResult.user?.role === "admin") {
+    const createTaskResult = await deleteTask(req.params.id)
     res.json(createTaskResult)
   }
 })
