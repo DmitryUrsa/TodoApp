@@ -275,7 +275,7 @@ function TaskForm({
           <h1 className="text-xl text-neutral-content font-bold mb-2">
             {currentTaskData ? "Редактировать" : "Создать"} задачу
           </h1>
-          {currentTaskData ? (
+          {currentTaskData && user.role === "admin" ? (
             <Button onClick={flushTaskData}>Закрыть редактирование</Button>
           ) : null}
 
@@ -284,6 +284,7 @@ function TaskForm({
               <span className="label-text">Заголовок</span>
             </label>
             <input
+              disabled={user.role !== "admin"}
               type="text"
               className="input input-bordered w-full"
               name={`header`}
@@ -297,6 +298,7 @@ function TaskForm({
               <span className="label-text">Описание</span>
             </label>
             <textarea
+              disabled={user.role !== "admin"}
               className="textarea textarea-bordered w-full"
               name={`description`}
               value={descriptionField}
@@ -304,18 +306,12 @@ function TaskForm({
             />
           </div>
 
-          <InputField
-            label="Описание"
-            name="description"
-            type="textarea"
-            value={currentTaskData?.description ?? undefined}
-          />
-
           <div className="form-control w-full mb-6">
             <label className="label">
               <span className="label-text">Дата окончания</span>
             </label>
             <DatePicker
+              disabled={user.role !== "admin"}
               selected={endDate}
               onChange={(date: Date) => setEndDate(date)}
               showTimeSelect
@@ -328,7 +324,7 @@ function TaskForm({
 
           <div className="form-control w-full mb-6">
             <label className="label">
-              <span className="label-text">Приоритет</span>
+              <span className="label-text">Статус</span>
             </label>
             <select name="status" className="select w-full">
               <option
@@ -369,7 +365,11 @@ function TaskForm({
             <label className="label">
               <span className="label-text">Приоритет</span>
             </label>
-            <select name="priority" className="select w-full">
+            <select
+              name="priority"
+              className="select w-full"
+              disabled={user.role !== "admin"}
+            >
               <option
                 disabled
                 value={0}
@@ -402,7 +402,11 @@ function TaskForm({
             <label className="label">
               <span className="label-text">Ответственный</span>
             </label>
-            <select name="assignedUser" className="select w-full">
+            <select
+              name="assignedUser"
+              className="select w-full"
+              disabled={user.role !== "admin"}
+            >
               <option disabled selected value={0}>
                 Выберите ответственного
               </option>
@@ -429,6 +433,9 @@ function TaskForm({
       </div>
     )
 
+  if (user.role !== "admin")
+    return <div>Недостаточно прав на создание задачи</div>
+
   return (
     <div className="w-full p-6 bg-base-200 rounded drop-shadow-xl mx-auto">
       <form onSubmit={handleTaskCreate}>
@@ -436,9 +443,30 @@ function TaskForm({
           Создать задачу
         </h1>
 
-        <InputField label="Заголовок" name="header" />
-        <InputField label="Описание" name="description" type="textarea" />
+        <div className="form-control w-full mb-6">
+          <label className="label">
+            <span className="label-text">Заголовок</span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            name={`header`}
+            value={headerField}
+            onChange={(e) => setHeaderField(e.target.value)}
+          />
+        </div>
 
+        <div className="form-control w-full mb-6">
+          <label className="label">
+            <span className="label-text">Описание</span>
+          </label>
+          <textarea
+            className="textarea textarea-bordered w-full"
+            name={`description`}
+            value={descriptionField}
+            onChange={(e) => setDescriptionField(e.target.value)}
+          />
+        </div>
         <div className="form-control w-full mb-6">
           <label className="label">
             <span className="label-text">Дата окончания</span>
@@ -571,7 +599,9 @@ const Home: NextPage = () => {
       <div>
         <Header mutateUser={mutateUser} />
         <div className="w-full p-6 bg-base-200 rounded drop-shadow-xl mx-auto">
-          <Button onClick={toggleVisible}>Создать задачу</Button>
+          {user.role === "admin" ? (
+            <Button onClick={toggleVisible}>Создать задачу</Button>
+          ) : null}
 
           <div className="tabs mb-4">
             <a

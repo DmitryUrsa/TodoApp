@@ -78,10 +78,11 @@ app.get("/usersList", async (req, res) => {
 app.post("/createtask", bodyParser.json(), async (req, res) => {
   const token = req.cookies.token
   const verifyResult = verifyToken(token)
-  console.log("verifyResult", verifyResult)
-  console.log(`req.body`, req.body)
 
-  if (verifyResult.status === "error")
+  if (
+    verifyResult.status === "error" ||
+    !(verifyResult.status === "success" && verifyResult.user?.role === "admin")
+  )
     res.status(401).json({
       status: "Unauthorized",
     })
@@ -99,14 +100,6 @@ app.post("/createtask", bodyParser.json(), async (req, res) => {
       endDate: string
       author: string
     }
-    console.log({
-      header: TypedBody.header,
-      description: TypedBody.description,
-      priority: TypedBody.priority,
-      assignedUser: TypedBody.assignedUser,
-      endDate: TypedBody.endDate,
-      author: TypedBody.author,
-    })
 
     const createTaskResult = await createTask({
       header: TypedBody.header,
@@ -141,11 +134,7 @@ app.put("/updatetask/:id", bodyParser.json(), async (req, res) => {
       status: "Unauthorized",
     })
 
-  if (
-    verifyResult.status === "success" &&
-    verifyResult.user?.role === "admin" &&
-    req.body
-  ) {
+  if (req.body) {
     const TypedBody = req.body as {
       id: string
       header: string
