@@ -54,3 +54,20 @@ export async function createTask({
   })
   return usersList
 }
+
+export async function getTasks() {
+  const tasksList = await prisma.task.findMany({})
+  const usersList = await prisma.user.findMany({
+    select: {
+      first_name: true,
+      second_name: true,
+      login: true,
+      id: true,
+    },
+  })
+
+  return tasksList.map((task) => ({
+    ...task,
+    assigned_user: usersList.find((user) => user.id == task.assigned_user),
+  }))
+}

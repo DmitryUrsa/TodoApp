@@ -7,7 +7,7 @@ import bodyParser from "body-parser"
 import { logIn, verifyToken } from "./auth/user.js"
 import cookieParser from "cookie-parser"
 import { getUsers } from "./users.js"
-import { createTask } from "./tasks.js"
+import { createTask, getTasks } from "./tasks.js"
 
 const app = express()
 
@@ -118,6 +118,18 @@ app.post("/createtask", bodyParser.json(), async (req, res) => {
     })
     res.json(createTaskResult)
   }
+})
+
+app.get("/gettasks", bodyParser.json(), async (req, res) => {
+  const token = req.cookies.token
+  const verifyResult = verifyToken(token)
+
+  if (verifyResult.status === "error")
+    res.status(401).json({
+      status: "Unauthorized",
+    })
+
+  res.json(await getTasks())
 })
 
 const port = process.env.PORT || 5000
