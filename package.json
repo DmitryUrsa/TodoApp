@@ -7,7 +7,7 @@
   "scripts": {
     "watch": "nodemon dist/index.js",
     "tsc": "tsc",
-    "start": "npm run tsc && concurrently \"node dist/index.js\" \"npm run dev --prefix ./client\""
+    "start": "npm run tsc && node dist/index.js"
   },
   "keywords": [],
   "author": "",
