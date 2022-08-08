@@ -150,7 +150,7 @@ export async function updateTaskStatus(id: string, status: string) {
       message: "Одно из полей пустое",
     }
 
-  const usersList = await prisma.task.update({
+  const data = await prisma.task.update({
     where: {
       id: parseInt(id),
     },
@@ -158,7 +158,11 @@ export async function updateTaskStatus(id: string, status: string) {
       status: status,
     },
   })
-  return usersList
+  if (data)
+    return {
+      status: "success",
+      message: "Статус изменен успешно",
+    }
 }
 
 export async function deleteTask(id: string) {
