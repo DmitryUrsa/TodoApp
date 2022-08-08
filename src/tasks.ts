@@ -156,6 +156,7 @@ export async function updateTaskStatus(id: string, status: string) {
     },
     data: {
       status: status,
+      last_updated: DateTime.now().toISO(),
     },
   })
   if (data)
