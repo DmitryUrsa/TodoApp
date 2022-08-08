@@ -6,6 +6,13 @@ export function TaskItem({ task, editTask }: any) {
   if (task.priority == 1) priorityClass = "bg-red-200 text-red-700"
   if (task.priority == 2) priorityClass = "bg-orange-200 text-orange-700"
   if (task.priority == 3) priorityClass = "bg-cyan-200 text-cyan-700"
+  let status = { class: "", label: "" }
+  if (task.status == "pending")
+    status = { class: "bg-gray-200 text-gray-700", label: "Ожидает выполнения" }
+  if (task.status == "started")
+    status = { class: "bg-blue-200 text-blue-700", label: "Выполняется" }
+  if (task.status == "finished")
+    status = { class: "bg-green-200 text-green-700", label: "Готово" }
 
   return (
     <li
@@ -20,6 +27,11 @@ export function TaskItem({ task, editTask }: any) {
         className={`mb-2 text-xs inline-flex items-center uppercase px-3 py-1 rounded-full ${priorityClass}`}
       >
         Приоритет {task.priority}
+      </div>
+      <div
+        className={`ml-2 mb-2 text-xs inline-flex items-center uppercase px-3 py-1 rounded-full ${status.class}`}
+      >
+        {status.label}
       </div>
       <p className="text-xs mb-1">
         Дата окончания: <b className="text-red-500">{task.end_date_fmt}</b>
