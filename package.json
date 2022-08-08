@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "watch": "nodemon dist/index.js",
-    "start": "npx tsc && concurrently \"node dist/index.js\" \"npm run dev --prefix ./client\""
+    "tsc": "tsc",
+    "start": "npm run tsc && concurrently \"node dist/index.js\" \"npm run dev --prefix ./client\""
   },
   "keywords": [],
   "author": "",
