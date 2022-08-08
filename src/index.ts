@@ -176,7 +176,6 @@ app.put("/updatetask/:id", bodyParser.json(), async (req, res) => {
         author: TypedBody.author,
         status: TypedBody.status,
       }
-      console.log(`request`, request)
       if (verifyResult.user?.role === "admin") {
         const createTaskResult = await updateTask(request)
         res.json(createTaskResult)
