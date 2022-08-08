@@ -55,6 +55,8 @@ export function TasksList({
   editTask: any
   user: LoginUser
 }) {
+  console.log("tasks", tasks)
+
   if (!tasks.length) return <Alert>Список задач пуст</Alert>
 
   if (groupBy == "assignedUser") {
@@ -65,33 +67,37 @@ export function TasksList({
     const uniqueUsers = [
       ...new Map(users.map((item) => [item["id"], item])).values(),
     ]
-    const filteredTasks = tasks.filter(
-      (task) => task.assigned_user.id == user.id
-    )
-    if (!filteredTasks.length) return <Alert>Список задач пуст</Alert>
+
     return (
       <>
-        {uniqueUsers.map((user) => (
-          <div
-            className="mb-4 border-b-2 border-gray-600"
-            key={`user-tasks-${user.id}`}
-          >
-            <h3 className="font-bold mb-2">Задачи для {user.name}</h3>
-            <ul>
-              {filteredTasks
-                .sort((a, b) => (a.priority > b.priority ? 1 : -1))
-                .map((task) => {
-                  return (
-                    <TaskItem
-                      key={`task-${task.id}`}
-                      task={task}
-                      editTask={editTask}
-                    />
-                  )
-                })}
-            </ul>
-          </div>
-        ))}
+        {uniqueUsers.map((user) => {
+          const assignedFilteredTasks = tasks.filter(
+            (task) => task.assigned_user.id == user.id
+          )
+          if (!assignedFilteredTasks.length)
+            return <Alert>Список задач пуст</Alert>
+          return (
+            <div
+              className="mb-4 border-b-2 border-gray-600"
+              key={`user-tasks-${user.id}`}
+            >
+              <h3 className="font-bold mb-2">Задачи для {user.name}</h3>
+              <ul>
+                {assignedFilteredTasks
+                  .sort((a, b) => (a.priority > b.priority ? 1 : -1))
+                  .map((task) => {
+                    return (
+                      <TaskItem
+                        key={`task-${task.id}`}
+                        task={task}
+                        editTask={editTask}
+                      />
+                    )
+                  })}
+              </ul>
+            </div>
+          )
+        })}
       </>
     )
   }
