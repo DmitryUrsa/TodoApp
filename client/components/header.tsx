@@ -14,7 +14,7 @@ export default function Header({ mutateUser }: any) {
     })
   }
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="mx-auto px-4 sm:px-6">
       <div className="flex justify-between items-center py-6">
         <div className="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
           <div className="mr-4">

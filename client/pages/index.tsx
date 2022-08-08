@@ -150,6 +150,7 @@ const Home: NextPage = () => {
             groupBy={tasksListSortType}
             userID={user.id}
             editTask={editTask}
+            user={user}
           />
         </div>
       </div>
