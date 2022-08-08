@@ -107,6 +107,10 @@ const Home: NextPage = () => {
     updateTasks()
   }, [])
 
+  useEffect(() => {
+    updateTasks()
+  }, [user])
+
   console.log(`user changed`, user)
   if (!user.isLoggedIn) return <Login mutateUser={mutateUser} />
 
