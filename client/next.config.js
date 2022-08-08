@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const withTM = require("next-transpile-modules")(["react-daisyui"])
+
+const nextConfig = withTM({
   reactStrictMode: true,
   swcMinify: true,
   async rewrites() {
@@ -10,6 +12,6 @@ const nextConfig = {
       },
     ]
   },
-}
+})
 
 module.exports = nextConfig
