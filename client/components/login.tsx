@@ -1,6 +1,37 @@
 import { useState } from "react"
 import { useUser, authenticate } from "../hooks/useUser"
 
+const users = [
+  {
+    first_name: "Dmitry",
+    second_name: "Ursa",
+    login: "DmitryUrsa",
+    password: "123",
+    role: "admin",
+  },
+  {
+    first_name: "Bob",
+    second_name: "Dylan",
+    login: "bobtherobot200",
+    password: "anothercoolpass!",
+    role: "user",
+  },
+  {
+    first_name: "Андрей",
+    second_name: "Андрей",
+    login: "aA200@mail.ru",
+    password: "PassWord10",
+    role: "user",
+  },
+  {
+    first_name: "Denzel",
+    second_name: "Curry",
+    login: "Ultimate",
+    password: "Bloons1",
+    role: "user",
+  },
+]
+
 export default function Login({ mutateUser }: any) {
   const [Message, setMessage] = useState<string | undefined>()
 
@@ -100,6 +131,18 @@ export default function Login({ mutateUser }: any) {
                 </button>
               </div>
             </form>
+
+            <div className="mt-6">
+              <h3>Логин : Пароль : Роль</h3>
+              {users.map((user) => {
+                return (
+                  <div key={user.login}>
+                    <b>{user.login}</b>|<b>{user.password}</b>|
+                    <b>{user.role}</b>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
