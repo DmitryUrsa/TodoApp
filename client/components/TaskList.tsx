@@ -1,3 +1,6 @@
+import { Alert } from "react-daisyui"
+import { LoginUser } from "../hooks/useUser.js"
+
 export function TaskItem({ task, editTask }: any) {
   let priorityClass = ""
   if (task.priority == 1) priorityClass = "bg-red-200 text-red-700"
@@ -32,12 +35,16 @@ export function TasksList({
   groupBy = "lastUpdated",
   userID,
   editTask = null,
+  user,
 }: {
   tasks: any[]
   groupBy: string
   userID: number | null
   editTask: any
+  user: LoginUser
 }) {
+  if (!tasks.length) return <Alert>Список задач пуст</Alert>
+
   if (groupBy == "assignedUser") {
     const users = tasks.map((task) => ({
       id: task.assigned_user.id,
@@ -46,6 +53,10 @@ export function TasksList({
     const uniqueUsers = [
       ...new Map(users.map((item) => [item["id"], item])).values(),
     ]
+    const filteredTasks = tasks.filter(
+      (task) => task.assigned_user.id == user.id
+    )
+    if (!filteredTasks.length) return <Alert>Список задач пуст</Alert>
     return (
       <>
         {uniqueUsers.map((user) => (
@@ -55,8 +66,7 @@ export function TasksList({
           >
             <h3 className="font-bold mb-2">Задачи для {user.name}</h3>
             <ul>
-              {tasks
-                .filter((task) => task.assigned_user.id == user.id)
+              {filteredTasks
                 .sort((a, b) => (a.priority > b.priority ? 1 : -1))
                 .map((task) => {
                   return (
@@ -75,10 +85,13 @@ export function TasksList({
   }
 
   if (groupBy == "user" && userID) {
+    const filteredTasks = tasks.filter(
+      (task) => task.assigned_user.id == userID
+    )
+    if (!filteredTasks.length) return <Alert>Список задач пуст</Alert>
     return (
       <ul>
-        {tasks
-          .filter((task) => task.assigned_user.id == userID)
+        {filteredTasks
           .sort((a, b) => (a.end_date > b.end_date ? 1 : -1))
           .map((task) => {
             return (
@@ -94,8 +107,6 @@ export function TasksList({
   }
 
   if (groupBy == "lastUpdated") {
-    console.log(tasks)
-
     return (
       <ul>
         {tasks
