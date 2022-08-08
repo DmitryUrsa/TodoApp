@@ -51,7 +51,7 @@ export async function createTask({
 
       start_date: DateTime.now().toISO(),
       end_date: DateTime.fromJSDate(new Date(endDate)).toISO(),
-      last_updated: DateTime.fromJSDate(new Date(endDate)).toISO(),
+      last_updated: DateTime.now().toISO(),
     },
   })
 
@@ -80,6 +80,12 @@ export async function getTasks() {
 
   return tasksList.map((task) => ({
     ...task,
+    last_updated_fmt: DateTime.fromJSDate(task.last_updated)
+      .setLocale("ru")
+      .toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
+    end_date_fmt: DateTime.fromJSDate(task.end_date)
+      .setLocale("ru")
+      .toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
     assigned_user: usersList.find((user) => user.id == task.assigned_user),
   }))
 }
@@ -110,10 +116,10 @@ export async function updateTask({
   )
     return {
       status: "error",
-      message: "One of the fields are empty",
+      message: "Одно из полей пустое",
     }
 
-  const usersList = await prisma.task.update({
+  const data = await prisma.task.update({
     where: {
       id: parseInt(id),
     },
@@ -127,16 +133,21 @@ export async function updateTask({
       author: parseInt(author),
 
       end_date: DateTime.fromJSDate(new Date(endDate)).toISO(),
-      last_updated: DateTime.fromJSDate(new Date(endDate)).toISO(),
+      last_updated: DateTime.now().toISO(),
     },
   })
-  return usersList
+  if (data)
+    return {
+      status: "success",
+      message: "Задача успешно была изменена",
+    }
 }
+
 export async function updateTaskStatus(id: string, status: string) {
   if (!(id && status))
     return {
       status: "error",
-      message: "One of the fields are empty",
+      message: "Одно из полей пустое",
     }
 
   const usersList = await prisma.task.update({
@@ -168,7 +179,7 @@ export async function deleteTask(id: string) {
       message: "Удаление успешно",
     }
   return {
-    status: "success",
+    status: "error",
     message: "Ошибка во время удаления",
   }
 }

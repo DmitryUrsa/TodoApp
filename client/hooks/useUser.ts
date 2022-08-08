@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-type User = {
+export type LoginUser = {
   isLoggedIn: boolean
   id: number | null
   login: string | null
@@ -14,7 +14,7 @@ export async function authenticate() {
 }
 
 export function useUser({ redirectTo = "", redirectIfFound = false } = {}) {
-  const [user, mutateUser] = useState<User>({
+  const [user, mutateUser] = useState<LoginUser>({
     isLoggedIn: false,
     id: null,
     login: null,
